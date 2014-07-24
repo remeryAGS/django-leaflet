@@ -1,0 +1,92 @@
+{% load leaflet_tags %}
+    {% leaflet_js %}
+    {% leaflet_css %}
+    <style>
+        .leaflet-container { height: 100%; }
+    </style>
+    {% leaflet_map name %}
+
+    <input type="hidden" name="{{ name }}" id="in_{{ name }}" value="" />
+    <script type="text/javascript">
+
+        window.addEventListener("map:init", function(e){
+
+            var input = document.getElementById("in_{{ name }}");
+            var map = e.detail.map;
+            var gray = "#0C2450";
+            var yellow = "#E6E600";
+            var selectedFeature = null;
+            var selected = [];
+            var multi = true;
+            if( '{{allow_multi}}' != 'True')
+                this.multi = false;
+
+            var unhighlight = function(selection){
+                if( !selection )
+                    return;
+                selection.setStyle({
+                    "color":gray,
+                    "fillColor":gray,
+                });
+            };
+    
+            var highlight = function(selection){
+                if( !selection )
+                    return;
+                selection.setStyle({
+                    "fillColor": yellow,
+                });
+            };
+    
+            var handleSelect = function(ev) {
+                feature = ev.target.feature;
+                id = feature.properties.id;
+                exists = selected.indexOf(id);
+    
+                //deselect if already selected
+                if(exists > -1){
+                    selected.splice(exists, 1);
+                    unhighlight(ev.target);
+                    if (selectedFeature && 
+                            selectedFeature.feature.properties.id == feature.properties.id){
+                        selectedFeature = null;
+                    }
+                } else {
+    
+                //select when multi=true
+                    if( multi == true){
+                        selected.push(id)
+                    } else{
+                        unhighlight(selectedFeature);
+                        selectedFeature = feature;
+                        selected = [id];
+                        map.fitBounds(feature.getBounds());
+                    }
+                    highlight(ev.target);
+                }
+                input.value = selected;
+            };
+    
+            var onEachFeature = function(feature, layer) {
+                p = feature.properties;
+                layer.on({
+                    click: handleSelect
+                });
+            };
+            
+            //Init procedures
+            var features = JSON.parse('{{ geofeatures|safe }}');
+            var countryLayer = L.geoJson(features,{
+                style: {
+                    "color": gray,
+                    "fillColor":gray,
+                    "weight": 1,
+                    "opacity": 0.7,
+                    "fillOpacity": 0.4
+                    },
+                    onEachFeature: onEachFeature
+                }).addTo(map);
+            map.fitBounds(countryLayer.getBounds());
+            
+    }, false);
+    </script>

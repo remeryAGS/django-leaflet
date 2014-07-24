@@ -2,6 +2,8 @@
 from __future__ import unicode_literals
 
 from django import forms
+from django.forms.widgets import Widget, Select
+from django.template import loader, Template, Context
 try:
     from django.contrib.gis.forms.widgets import BaseGeometryWidget
 except ImportError:
@@ -53,3 +55,59 @@ class LeafletWidget(BaseGeometryWidget):
                      geometry_field_class=attrs.get('geometry_field_class', 'L.GeometryField'),
                      field_store_class=attrs.get('field_store_class', 'L.FieldStore'))
         return super(LeafletWidget, self).render(name, value, attrs)
+
+
+class MapChooserWidget(Widget):
+    # Name of the map widget template
+    template_name = 'leaflet/map_chooser_widget.html'
+
+    def __init__(self, attrs=None, allow_multi=True, choices=()):
+
+        super(MapChooserWidget, self).__init__(attrs)
+
+        self.allow_multi = allow_multi
+        self.choices = list(choices)
+        print self.choices
+
+    def value_from_datadict(self, data, files, name):
+        # Get string from POST array
+        value = data.get(name, None)
+
+        if value:
+            # Turn string into list of ids and return them
+            ids = value.split(',')
+            return ids
+
+        # No countries were submitted, return None
+        return value
+
+    def render(self, name, value, attrs=None, choices=()):
+
+
+        #Create JSON for every object
+        geojson_tpl = """{ "type": "FeatureCollection",
+        "features": [
+        {% for ob in objects %}
+            { "type": "Feature",
+                "geometry": {{ob.geometry.json|safe}},
+                "properties": {
+                    "id": {{ob.id}},
+                    "name": "{{ob.name}}"
+                }
+            }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+        ]
+         }"""
+        t = Template(geojson_tpl)
+        geojson = t.render(Context({'objects':self.choices.queryset}))
+
+        #remove newlines to avoid problems with multi-line strings
+        geojson = geojson.replace('\n', ' \\\n')
+
+        context = self.build_attrs(
+            attrs,
+            name=name,
+            allow_multi=self.allow_multi,
+            geofeatures=geojson,
+        )
+        return loader.render_to_string(self.template_name, context)
