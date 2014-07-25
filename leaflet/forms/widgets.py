@@ -83,26 +83,28 @@ class MapChooserWidget(Widget):
 
     def render(self, name, value, attrs=None, choices=()):
 
+        geojson = {}
 
-        #Create JSON for every object
-        geojson_tpl = """{ "type": "FeatureCollection",
-        "features": [
-        {% for ob in objects %}
-            { "type": "Feature",
-                "geometry": {{ob.geometry.json|safe}},
-                "properties": {
-                    "id": {{ob.id}},
-                    "name": "{{ob.name}}"
-                }
-            }{% if not forloop.last %},{% endif %}
-        {% endfor %}
-        ]
-         }"""
-        t = Template(geojson_tpl)
-        geojson = t.render(Context({'objects':self.choices.queryset}))
+        if(self.choices):
+            #Create JSON for every object
+            geojson_tpl = """{ "type": "FeatureCollection",
+            "features": [
+            {% for ob in objects %}
+                { "type": "Feature",
+                    "geometry": {{ob.geometry.json|safe}},
+                    "properties": {
+                        "id": {{ob.id}},
+                        "name": "{{ob.name}}"
+                    }
+                }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+            ]
+             }"""
+            t = Template(geojson_tpl)
+            geojson = t.render(Context({'objects':self.choices.queryset}))
 
-        #remove newlines to avoid problems with multi-line strings
-        geojson = geojson.replace('\n', ' \\\n')
+            #remove newlines to avoid problems with multi-line strings
+            geojson = geojson.replace('\n', ' \\\n')
 
         context = self.build_attrs(
             attrs,

@@ -75,7 +75,12 @@
             };
             
             //Init procedures
-            var features = JSON.parse('{{ geofeatures|safe }}');
+            var features;
+            
+            {% if geofeatures %}
+            features = JSON.parse('{{ geofeatures|safe }}');
+            {% endif %}
+
             var countryLayer = L.geoJson(features,{
                 style: {
                     "color": gray,
