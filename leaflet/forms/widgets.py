@@ -82,6 +82,8 @@ class MapChooserWidget(Widget):
         return value
 
     def render(self, name, value, attrs=None, choices=()):
+        for shape in self.choices.queryset:
+            shape.geometry.transform(4326)
 
         geojson = {}
 
@@ -93,7 +95,7 @@ class MapChooserWidget(Widget):
                 { "type": "Feature",
                     "geometry": {{ob.geometry.json|safe}},
                     "properties": {
-                        "id": {{ob.id}},
+                        "id": "{{ob.pk}}",
                         "name": "{{ob.name}}"
                     }
                 }{% if not forloop.last %},{% endif %}
