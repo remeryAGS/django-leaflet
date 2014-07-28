@@ -61,7 +61,7 @@
                         unhighlight(selectedFeature);
                         selectedFeature = ev.target;
                         selected = [id];
-                        // map.fitBounds(feature.getBounds());
+                        map.fitBounds(selectedFeature.getBounds());
                     }
                     highlight(ev.target);
                 }
