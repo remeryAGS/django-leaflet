@@ -19,11 +19,12 @@
             var selected = [];
             var multi = true;
             if( '{{allow_multi}}' != 'True')
-                this.multi = false;
+                multi = false;
 
             var unhighlight = function(selection){
                 if( !selection )
                     return;
+                console.log(selection);
                 selection.setStyle({
                     "color":gray,
                     "fillColor":gray,
@@ -58,9 +59,9 @@
                         selected.push(id)
                     } else{
                         unhighlight(selectedFeature);
-                        selectedFeature = feature;
+                        selectedFeature = ev.target;
                         selected = [id];
-                        map.fitBounds(feature.getBounds());
+                        // map.fitBounds(feature.getBounds());
                     }
                     highlight(ev.target);
                 }
