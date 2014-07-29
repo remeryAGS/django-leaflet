@@ -67,7 +67,6 @@ class MapChooserWidget(Widget):
 
         self.allow_multi = allow_multi
         self.choices = list(choices)
-        print self.choices
 
     def value_from_datadict(self, data, files, name):
         # Get string from POST array
@@ -82,6 +81,8 @@ class MapChooserWidget(Widget):
         return value
 
     def render(self, name, value, attrs=None, choices=()):
+        for shape in self.choices.queryset:
+            shape.geometry.transform(4326)
 
         geojson = {}
 
@@ -93,8 +94,8 @@ class MapChooserWidget(Widget):
                 { "type": "Feature",
                     "geometry": {{ob.geometry.json|safe}},
                     "properties": {
-                        "id": {{ob.id}},
-                        "name": "{{ob.name}}"
+                        "id": "{{ob.pk}}",
+                        "name": "{{ ob }}"
                     }
                 }{% if not forloop.last %},{% endif %}
             {% endfor %}
