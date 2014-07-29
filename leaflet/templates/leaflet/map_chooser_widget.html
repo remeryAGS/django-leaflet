@@ -3,6 +3,20 @@
     {% leaflet_css %}
     <style>
         .leaflet-container { height: 100%; }
+
+        .info {
+            padding: 6px 8px;
+            font: 14px/16px Arial, Helvetica, sans-serif;
+            background: white;
+            background: rgba(255,255,255,0.8);
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            border-radius: 5px;
+        }
+
+        .info h4 {
+            margin: 0 0 5px;
+            color: #777;
+        }
     </style>
     {% leaflet_map name %}
 
@@ -20,6 +34,21 @@
             var multi = true;
             if( '{{allow_multi}}' != 'True')
                 multi = false;
+
+            // Informational box in top right
+            var info = L.control();
+
+            info.onAdd = function(map) {
+                this._div = L.DomUtil.create('div', 'info');
+                this.update();
+                return this._div;
+            };
+
+            info.update = function(msg) {
+                this._div.innerHTML = (msg ? msg : '<small>Click on a grey area to select</small>');
+            };
+
+            info.addTo(map);
 
             var unhighlight = function(selection){
                 if( !selection )
@@ -67,11 +96,18 @@
                 }
                 input.value = selected;
             };
+
+            var handleMouseover = function(e) {
+                if(e) {
+                    info.update(e.target.feature.properties.name);
+                }
+            };
     
             var onEachFeature = function(feature, layer) {
                 p = feature.properties;
                 layer.on({
-                    click: handleSelect
+                    click: handleSelect,
+                    mouseover: handleMouseover
                 });
             };
             
@@ -89,9 +125,10 @@
                     "weight": 1,
                     "opacity": 0.7,
                     "fillOpacity": 0.4
-                    },
-                    onEachFeature: onEachFeature
-                }).addTo(map);
+                },
+                onEachFeature: onEachFeature
+            }).addTo(map);
+
             map.fitBounds(countryLayer.getBounds());
             
     }, false);

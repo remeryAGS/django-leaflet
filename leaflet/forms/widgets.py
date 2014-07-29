@@ -67,7 +67,6 @@ class MapChooserWidget(Widget):
 
         self.allow_multi = allow_multi
         self.choices = list(choices)
-        print self.choices
 
     def value_from_datadict(self, data, files, name):
         # Get string from POST array
@@ -96,7 +95,7 @@ class MapChooserWidget(Widget):
                     "geometry": {{ob.geometry.json|safe}},
                     "properties": {
                         "id": "{{ob.pk}}",
-                        "name": "{{ob.name}}"
+                        "name": "{{ ob }}"
                     }
                 }{% if not forloop.last %},{% endif %}
             {% endfor %}
