@@ -82,6 +82,8 @@ class MapChooserWidget(Widget):
 
     def render(self, name, value, attrs=None, choices=()):
         for shape in self.choices.queryset:
+            if shape.geometry.srid is None:
+                shape.geomery.srid = 3857
             shape.geometry.transform(4326)
 
         geojson = {}
