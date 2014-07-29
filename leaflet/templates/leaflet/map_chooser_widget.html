@@ -91,6 +91,8 @@
                     "fillColor": yellow,
                 });
                 selected.push(id);
+                input.value = selected;
+                $("#map-chosen").val(selected).trigger("chosen:updated");
             };
     
             var handleSelect = function(ev) {
