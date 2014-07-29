@@ -32,9 +32,14 @@
             var multi = true;
             if( '{{allow_multi}}' != 'True')
                 multi = false;
-
             // Informational box in top right
             var info = L.control();
+
+            {% if initial_choices %}
+            var init_choices = {{initial_choices}};
+            {% else %}
+            var init_choices = [];
+            {% endif %}
 
             info.onAdd = function(map) {
                 this._div = L.DomUtil.create('div', 'info');
@@ -51,23 +56,26 @@
             var unhighlight = function(selection){
                 if( !selection )
                     return;
-                console.log(selection);
                 selection.setStyle({
                     "color":gray,
                     "fillColor":gray,
                 });
             };
     
-            var highlight = function(selection){
+            var highlight = function(selection, id){
                 if( !selection )
                     return;
                 selection.setStyle({
                     "fillColor": yellow,
                 });
+                selected.push(id);
+                input.value = selected;
             };
     
             var handleSelect = function(ev) {
                 feature = ev.target.feature;
+                console.log(ev.target)
+                console.log(feature)
                 id = feature.properties.id;
                 exists = selected.indexOf(id);
     
@@ -81,18 +89,15 @@
                     }
                 } else {
     
-                //select when multi=true
-                    if( multi == true){
-                        selected.push(id)
-                    } else{
+                //Make sure single item selected if mutli-false
+                    if( multi == false){
                         unhighlight(selectedFeature);
                         selectedFeature = ev.target;
-                        selected = [id];
+                        selected = [];
                         map.fitBounds(selectedFeature.getBounds());
                     }
-                    highlight(ev.target);
+                    highlight(ev.target, id);
                 }
-                input.value = selected;
             };
 
             var handleMouseover = function(e) {
@@ -103,10 +108,15 @@
     
             var onEachFeature = function(feature, layer) {
                 p = feature.properties;
+                //console.log(p);
+                //console.log(layer);
                 layer.on({
                     click: handleSelect,
                     mouseover: handleMouseover
                 });
+                if (init_choices.indexOf(p.id) > -1){
+                    highlight(layer, p.id);
+                }
             };
             
             //Init procedures
@@ -128,6 +138,11 @@
             }).addTo(map);
 
             map.fitBounds(countryLayer.getBounds());
-            
+
+            /*
+            {{initial_choices}}
+            */
+
+
     }, false);
     </script>
