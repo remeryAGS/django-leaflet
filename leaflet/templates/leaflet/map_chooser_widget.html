@@ -37,6 +37,12 @@
             // Informational box in top right
             var info = L.control();
 
+            {% if initial_choices %}
+            var init_choices = {{initial_choices}};
+            {% else %}
+            var init_choices = [];
+            {% endif %}
+
             info.onAdd = function(map) {
                 this._div = L.DomUtil.create('div', 'info');
                 this.update();
@@ -70,6 +76,8 @@
     
             var handleSelect = function(ev) {
                 feature = ev.target.feature;
+                console.log(ev.target)
+                console.log(feature)
                 id = feature.properties.id;
                 exists = selected.indexOf(id);
     
@@ -102,10 +110,15 @@
     
             var onEachFeature = function(feature, layer) {
                 p = feature.properties;
+                //console.log(p);
+                //console.log(layer);
                 layer.on({
                     click: handleSelect,
                     mouseover: handleMouseover
                 });
+                if (init_choices.indexOf(p.id) > -1){
+                    highlight(layer, p.id);
+                }
             };
             
             //Init procedures
@@ -127,6 +140,11 @@
             }).addTo(map);
 
             map.fitBounds(countryLayer.getBounds());
+
+            /*
+            {{initial_choices}}
+            */
+
 
     }, false);
     </script>

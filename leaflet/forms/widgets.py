@@ -61,12 +61,13 @@ class MapChooserWidget(Widget):
     # Name of the map widget template
     template_name = 'leaflet/map_chooser_widget.html'
 
-    def __init__(self, attrs=None, allow_multi=True, choices=()):
+    def __init__(self, attrs=None, allow_multi=True, choices=(), initial=()):
 
         super(MapChooserWidget, self).__init__(attrs)
 
         self.allow_multi = allow_multi
         self.choices = list(choices)
+        self.initial = list(initial)
 
     def value_from_datadict(self, data, files, name):
         # Get string from POST array
@@ -80,7 +81,7 @@ class MapChooserWidget(Widget):
         # No countries were submitted, return None
         return value
 
-    def render(self, name, value, attrs=None, choices=()):
+    def render(self, name, value, attrs=None, choices=(), initial=()):
         for shape in self.choices.queryset:
             shape.geometry.transform(4326)
 
@@ -106,11 +107,18 @@ class MapChooserWidget(Widget):
 
             #remove newlines to avoid problems with multi-line strings
             geojson = geojson.replace('\n', ' \\\n')
+        
+        init_choices = {}
+        if self.initial:
+            init_tpl = """[{% for ob in objects%}'{{ob.pk}}'{% if not forloop.last %},{% endif %}{% endfor %}]"""
+            t2 = Template(init_tpl)
+            init_choices = t2.render(Context({'objects':self.initial}))
 
         context = self.build_attrs(
             attrs,
             name=name,
             allow_multi=self.allow_multi,
             geofeatures=geojson,
+            initial_choices=init_choices
         )
         return loader.render_to_string(self.template_name, context)
