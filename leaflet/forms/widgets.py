@@ -120,6 +120,7 @@ class MapChooserWidget(Widget):
             attrs,
             name=name,
             allow_multi=self.allow_multi,
+            shapes=self.choices.queryset,
             geofeatures=geojson,
             initial_choices=init_choices
         )

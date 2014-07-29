@@ -1,6 +1,9 @@
+{% load static from staticfiles %}
 {% load leaflet_tags %}
     {% leaflet_js %}
+    <script src="{% static "leaflet/chosen.jquery.js" %}"></script>
     {% leaflet_css %}
+    <link rel="stylesheet" href="{% static "leaflet/chosen.css" %}" />
     <style>
         .info {
             padding: 6px 8px;
@@ -15,10 +18,27 @@
             margin: 0 0 5px;
             color: #777;
         }
+
+        #chosen {
+            margin: 10px 0 10px 0;
+        }
     </style>
     {% leaflet_map name %}
 
     <input type="hidden" name="{{ name }}" id="in_{{ name }}" value="" />
+
+    <div id="chosen">
+        {% if allow_multi %}
+        <select multiple id="map-chosen">
+        {% else %}
+        <select id="map-chosen">
+        {% endif %}
+            {% for shape in shapes %}
+            <option value="{{ shape.pk }}">{{ shape }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
     <script type="text/javascript">
 
         window.addEventListener("map:init", function(e){
@@ -35,6 +55,7 @@
             // Informational box in top right
             var info = L.control();
 
+            
             {% if initial_choices %}
             var init_choices = {{initial_choices}};
             {% else %}
@@ -49,6 +70,7 @@
 
             info.update = function(msg) {
                 this._div.innerHTML = (msg ? msg : '<small>Click on a grey area to select</small>');
+
             };
 
             info.addTo(map);
@@ -69,13 +91,10 @@
                     "fillColor": yellow,
                 });
                 selected.push(id);
-                input.value = selected;
             };
     
             var handleSelect = function(ev) {
                 feature = ev.target.feature;
-                console.log(ev.target)
-                console.log(feature)
                 id = feature.properties.id;
                 exists = selected.indexOf(id);
     
@@ -98,6 +117,8 @@
                     }
                     highlight(ev.target, id);
                 }
+                input.value = selected;
+                $("#map-chosen").val(selected).trigger("chosen:updated");
             };
 
             var handleMouseover = function(e) {
@@ -108,8 +129,6 @@
     
             var onEachFeature = function(feature, layer) {
                 p = feature.properties;
-                //console.log(p);
-                //console.log(layer);
                 layer.on({
                     click: handleSelect,
                     mouseover: handleMouseover
@@ -139,6 +158,34 @@
 
             map.fitBounds(countryLayer.getBounds());
 
+            $("#map-chosen").chosen({
+                width: "45%",
+                allow_single_deselect: true,
+                placeholder_text_multiple: "Click here to search for a location",
+                placeholder_text_single: "Select a country"
+            });
+
+             var findFeature = function(feature_id) {
+                for (layer in countryLayer._layers) {
+                    // If the Feature contained in the current layer has the id we're looking for...
+                    if (countryLayer._layers[layer].feature.properties.id === feature_id) {
+                         return countryLayer._layers[layer];
+                    }
+                }
+            };
+
+            $("#map-chosen").on('change', function(evt, params) {
+                if (params.hasOwnProperty('selected')) {
+                    feature_id = params.selected;
+                } else if (params.hasOwnProperty('deselected')) {
+                    feature_id = params.deselected;
+                }
+                var ev = {};
+                ev.target = findFeature(feature_id);
+                handleSelect(ev);
+            });
+           
+            
             /*
             {{initial_choices}}
             */
