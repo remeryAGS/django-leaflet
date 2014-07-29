@@ -52,7 +52,6 @@
             var unhighlight = function(selection){
                 if( !selection )
                     return;
-                console.log(selection);
                 selection.setStyle({
                     "color":gray,
                     "fillColor":gray,
@@ -66,8 +65,6 @@
                     "fillColor": yellow,
                 });
                 selected.push(id);
-                console.log(selected);
-                console.log(id);
                 input.value = selected;
             };
     
@@ -78,7 +75,6 @@
     
                 //deselect if already selected
                 if(exists > -1){
-                    console.log('Already selected');
                     selected.splice(exists, 1);
                     unhighlight(ev.target);
                     if (selectedFeature && 
@@ -87,21 +83,15 @@
                     }
                 } else {
     
-                //select when multi=true
-                    if( multi == true){
-                        //selected.push(id)
-                        console.log('test')
-                        console.log(selected)
-                    } else{
+                //Make sure single item selected if mutli-false
+                    if( multi == false){
                         unhighlight(selectedFeature);
                         selectedFeature = ev.target;
-                        //selected = [id];
                         selected = [];
                         map.fitBounds(selectedFeature.getBounds());
                     }
                     highlight(ev.target, id);
                 }
-                //input.value = selected;
             };
 
             var handleMouseover = function(e) {
