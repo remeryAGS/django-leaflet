@@ -19,23 +19,28 @@
             var selected = [];
             var multi = true;
             if( '{{allow_multi}}' != 'True')
-                this.multi = false;
+                multi = false;
 
             var unhighlight = function(selection){
                 if( !selection )
                     return;
+                console.log(selection);
                 selection.setStyle({
                     "color":gray,
                     "fillColor":gray,
                 });
             };
     
-            var highlight = function(selection){
+            var highlight = function(selection, id){
                 if( !selection )
                     return;
                 selection.setStyle({
                     "fillColor": yellow,
                 });
+                selected.push(id);
+                console.log(selected);
+                console.log(id);
+                input.value = selected;
             };
     
             var handleSelect = function(ev) {
@@ -45,6 +50,7 @@
     
                 //deselect if already selected
                 if(exists > -1){
+                    console.log('Already selected');
                     selected.splice(exists, 1);
                     unhighlight(ev.target);
                     if (selectedFeature && 
@@ -55,16 +61,19 @@
     
                 //select when multi=true
                     if( multi == true){
-                        selected.push(id)
+                        //selected.push(id)
+                        console.log('test')
+                        console.log(selected)
                     } else{
                         unhighlight(selectedFeature);
-                        selectedFeature = feature;
-                        selected = [id];
-                        map.fitBounds(feature.getBounds());
+                        selectedFeature = ev.target;
+                        //selected = [id];
+                        selected = [];
+                        map.fitBounds(selectedFeature.getBounds());
                     }
-                    highlight(ev.target);
+                    highlight(ev.target, id);
                 }
-                input.value = selected;
+                //input.value = selected;
             };
     
             var onEachFeature = function(feature, layer) {
@@ -92,6 +101,6 @@
                     onEachFeature: onEachFeature
                 }).addTo(map);
             map.fitBounds(countryLayer.getBounds());
-            
+
     }, false);
     </script>
